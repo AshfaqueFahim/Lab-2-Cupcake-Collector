@@ -1,4 +1,4 @@
-import vlc
+import sys
 import pygame
 import asyncio
 import random
@@ -8,50 +8,39 @@ pygame.init()
 WIDTH, HEIGHT = 600, 400
 playerL, playerH = 25, 25
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
+clock = pygame.time.Clock()
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-cupcake_image = pygame.image.load(os.path.join(SCRIPT_DIR, "assets/cupcake.jpeg")).convert_alpha()
+cupcake_image = pygame.image.load("assets/chopped cheese.png").convert_alpha()
 cupcake_image = pygame.transform.scale(
     cupcake_image,
     (50, 50)
 )
 
-player_image = pygame.image.load(os.path.join(SCRIPT_DIR, "assets/player.jpg")).convert_alpha()
+player_image = pygame.image.load("assets/mamdani.png").convert_alpha()
 player_image = pygame.transform.scale(
     player_image,
     (playerL, playerH)
 )
 
-def jump_sound():
-    player = vlc.MediaPlayer(https://gofile.io/d/appWXv3g)
-    player.play()
-def collect_sound():
-    player = vlc.MediaPlayer(
-  ..........
-  -.+30
+jump_sound = pygame.mixer.Sound("assets/sonic-pad-bounce.wav")
+collect_sound = pygame.mixer.Sound("assets/money-soundfx.wav")
+
 platforms = [
-.
-  pygame.Rect(0, 350, 600, 50),
-   
-      --.-
-      .+*.++
-      -+
-      
-      .-+.
-      -++
-      ++
-      *pygame.Rect(100, 270, 150, 20),
-    pyg00a1.me.Rect(350, 220, 150, 20)
+    pygame.Rect(0, 350, 600, 50),
+    pygame.Rect(100, 270, 150, 20),
+    pygame.Rect(350, 220, 150, 20)
 ]
+platform_speeds = [0, 2, -2]
 
 cupcakes = []
-for _ in range(10):
+for _ in range(3):
     cx = random.randint(0, WIDTH - 50)
     cy = random.randint(0, HEIGHT - 50)
    
     cupcakes.append(pygame.Rect(cx, cy, 50, 50))
 
 async def main():
+    global playerL, playerH
     score = 0
     
     player_rect = pygame.Rect(50, 300, playerL, playerH)
@@ -92,7 +81,12 @@ async def main():
         if player_rect.right > WIDTH:
             player_rect.right = WIDTH
             
-        player_dy += gravity     
+        for i in range(len(platforms)):
+            platforms[i].x += platform_speeds[i]
+            if platforms[i].left < 0 or platforms[i].right > WIDTH:
+                platform_speeds[i] = -platform_speeds[i]
+
+        player_dy += gravity
         
         player_rect.y += player_dy
         is_grounded = False  
@@ -110,6 +104,9 @@ async def main():
         for cupcake in cupcakes[:]:
             if player_rect.colliderect(cupcake):
                 cupcakes.remove(cupcake)
+                cx = random.randint(0, WIDTH - 50)
+                cy = random.randint(0, HEIGHT - 50)
+                cupcakes.append(pygame.Rect(cx, cy, 50, 50))
                 score += 1
                 playerL += 10
                 playerH += 10
@@ -135,8 +132,12 @@ async def main():
         screen.blit(text_surface, (0, 0))
 
         screen.blit(player_image, player_rect)
-    
+
         pygame.display.flip()
-        await asyncio.sleep(0.016)
+        clock.tick(60)
+        await asyncio.sleep(0)
+
+    pygame.quit()
+    sys.exit()
 
 asyncio.run(main())
